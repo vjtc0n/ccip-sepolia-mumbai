@@ -1,0 +1,1 @@
+npx hardhat setup-protocol --network mumbai
