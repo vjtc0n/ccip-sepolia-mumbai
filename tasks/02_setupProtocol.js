@@ -24,9 +24,9 @@ task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) =>
 
   console.log(`\nDeploying Protocol.sol to ${network.name}...`)
   const protocolFactory = await ethers.getContractFactory("Protocol")
-  // const protocolContract = await protocolFactory.deploy(ROUTER, LINK)
-  // await protocolContract.deployTransaction.wait(1)
-  const protocolContract = await protocolFactory.attach("0x6e57a0a2AE23491B8Ca5C9d08C0B384e2bDBB925")
+  const protocolContract = await protocolFactory.deploy(ROUTER, LINK)
+  await protocolContract.deployTransaction.wait(1)
+  // const protocolContract = await protocolFactory.attach("0x6e57a0a2AE23491B8Ca5C9d08C0B384e2bDBB925")
 
   console.log(`\nProtocol contract is deployed to ${network.name} at ${protocolContract.address}`)
 
@@ -38,8 +38,8 @@ task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) =>
   const linkTokenContract = await LinkTokenFactory.attach(networks[network.name].linkToken)
 
   // Transfer LINK tokens to the contract
-  // const linkTx = await linkTokenContract.transfer(protocolContract.address, ethers.utils.parseEther(LINK_AMOUNT))
-  // await linkTx.wait(1)
+  const linkTx = await linkTokenContract.transfer(protocolContract.address, ethers.utils.parseEther(LINK_AMOUNT))
+  await linkTx.wait(1)
 
   console.log(`\nFunding ${protocolContract.address} with ${TOKEN_TRANSFER_AMOUNT} CCIP-BnM ${bnmToken}`)
   const bnmTokenContract = await ethers.getContractAt("@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20", bnmToken)

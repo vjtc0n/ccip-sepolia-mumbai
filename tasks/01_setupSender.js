@@ -22,14 +22,10 @@ task("setup-sender", "deploy Sender.sol").setAction(async (taskArgs, hre) => {
   // console.log("\n__Compiling Contracts__")
   // await run("compile")
 
-  // console.log(`\nDeploying Sender.sol to ${network.name}...`)
-  // const senderFactory = await ethers.getContractFactory("Sender")
-  // const senderContract = await senderFactory.deploy(ROUTER, LINK)
-  // await senderContract.deployTransaction.wait(1)
-
-  const senderContract = {
-    address: "0xe10c5dc329BAC79F29F9c45Bc5DD5D43a12E3171",
-  }
+  console.log(`\nDeploying Sender.sol to ${network.name}...`)
+  const senderFactory = await ethers.getContractFactory("Sender")
+  const senderContract = await senderFactory.deploy(ROUTER, LINK)
+  await senderContract.deployTransaction.wait(1)
 
   console.log(`\nSender contract is deployed to ${network.name} at ${senderContract.address}`)
 
@@ -37,11 +33,11 @@ task("setup-sender", "deploy Sender.sol").setAction(async (taskArgs, hre) => {
   console.log(`\nFunding ${senderContract.address} with ${TOKEN_TRANSFER_AMOUNT} CCIP-BnM ${bnmToken}`)
   const bnmTokenContract = await ethers.getContractAt("@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20", bnmToken)
 
-  // const bnmTokenTx = await bnmTokenContract.transfer(
-  //   senderContract.address,
-  //   ethers.utils.parseUnits(TOKEN_TRANSFER_AMOUNT)
-  // )
-  // await bnmTokenTx.wait(1)
+  const bnmTokenTx = await bnmTokenContract.transfer(
+    senderContract.address,
+    ethers.utils.parseUnits(TOKEN_TRANSFER_AMOUNT)
+  )
+  await bnmTokenTx.wait(1)
 
   const bnmTokenBal_baseUnits = await bnmTokenContract.balanceOf(senderContract.address)
   const bnmTokenBal = ethers.utils.formatUnits(bnmTokenBal_baseUnits.toString())
@@ -52,8 +48,8 @@ task("setup-sender", "deploy Sender.sol").setAction(async (taskArgs, hre) => {
   const LinkTokenFactory = await ethers.getContractFactory("@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20")
   const linkTokenContract = await LinkTokenFactory.attach(networks[network.name].linkToken)
 
-  // const linkTx = await linkTokenContract.transfer(senderContract.address, ethers.utils.parseUnits(LINK_AMOUNT))
-  // await linkTx.wait(1)
+  const linkTx = await linkTokenContract.transfer(senderContract.address, ethers.utils.parseUnits(LINK_AMOUNT))
+  await linkTx.wait(1)
 
   const juelsBalance = await linkTokenContract.balanceOf(senderContract.address)
   const linkBalance = ethers.utils.formatEther(juelsBalance.toString())
