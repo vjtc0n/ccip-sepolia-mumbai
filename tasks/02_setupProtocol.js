@@ -17,6 +17,7 @@ task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) =>
   const ROUTER = networks[network.name].router
   const LINK = networks[network.name].linkToken
   const LINK_AMOUNT = "0.5"
+  const TOKEN_TRANSFER_AMOUNT = "0.0001"
 
   console.log("\n__Compiling Contracts__")
   await run("compile")
@@ -25,7 +26,7 @@ task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) =>
   const protocolFactory = await ethers.getContractFactory("Protocol")
   // const protocolContract = await protocolFactory.deploy(ROUTER, LINK)
   // await protocolContract.deployTransaction.wait(1)
-  const protocolContract = await protocolFactory.attach("0xfa795B92B655c030612EfA34bB57602d985Ce814")
+  const protocolContract = await protocolFactory.attach("0x6e57a0a2AE23491B8Ca5C9d08C0B384e2bDBB925")
 
   console.log(`\nProtocol contract is deployed to ${network.name} at ${protocolContract.address}`)
 
@@ -39,6 +40,19 @@ task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) =>
   // Transfer LINK tokens to the contract
   // const linkTx = await linkTokenContract.transfer(protocolContract.address, ethers.utils.parseEther(LINK_AMOUNT))
   // await linkTx.wait(1)
+
+  console.log(`\nFunding ${protocolContract.address} with ${TOKEN_TRANSFER_AMOUNT} CCIP-BnM ${bnmToken}`)
+  const bnmTokenContract = await ethers.getContractAt("@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20", bnmToken)
+
+  // const bnmTokenTx = await bnmTokenContract.transfer(
+  //   protocolContract.address,
+  //   ethers.utils.parseUnits(TOKEN_TRANSFER_AMOUNT)
+  // )
+  // await bnmTokenTx.wait(1)
+
+  const bnmTokenBal_baseUnits = await bnmTokenContract.balanceOf(protocolContract.address)
+  const bnmTokenBal = ethers.utils.formatUnits(bnmTokenBal_baseUnits.toString())
+  console.log(`\nFunded ${protocolContract.address} with ${bnmTokenBal} CCIP-BnM`)
 
   const juelsBalance = await linkTokenContract.balanceOf(protocolContract.address)
   const linkBalance = ethers.utils.formatEther(juelsBalance.toString())

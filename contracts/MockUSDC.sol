@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract MockUSDC is ERC20, ERC20Burnable, Ownable {
   constructor() ERC20("MockUSDC", "MUSDC") {}
 
-  function mint(address to, uint256 amount) public onlyOwner {
+  function mint(address to, uint256 amount) public {
     _mint(to, amount);
   }
 }

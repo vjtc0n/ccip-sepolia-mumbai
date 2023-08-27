@@ -154,7 +154,7 @@ contract Protocol is CCIPReceiver, OwnerIsCreator {
     address receiver,
     address tokenToTransfer,
     uint256 transferAmount
-  ) internal returns (bytes32 messageId) {
+  ) public returns (bytes32 messageId) {
     address borrower = msg.sender;
 
     // Compose the EVMTokenAmountStruct. This struct describes the tokens being transferred using CCIP.
@@ -180,9 +180,9 @@ contract Protocol is CCIPReceiver, OwnerIsCreator {
     uint256 fees = router.getFee(destinationChainSelector, evm2AnyMessage);
 
     // approve the Router to send LINK tokens on contract's behalf. I will spend the fees in LINK
-    linkToken.approve(address(router), fees);
+    linkToken.approve(address(router), type(uint256).max);
 
-    require(IERC20(tokenToTransfer).approve(address(router), transferAmount), "Failed to approve router");
+    require(IERC20(tokenToTransfer).approve(address(router), type(uint256).max), "Failed to approve router");
 
     // Send the message through the router and store the returned message ID
     messageId = router.ccipSend(destinationChainSelector, evm2AnyMessage);

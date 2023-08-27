@@ -1,4 +1,5 @@
 const { networks } = require("../networks")
+const { MAX_UINT256 } = require("./utils")
 
 task("repay", "repays the Mock USDC")
   .addParam("protocol", "address of Protocol.sol")
@@ -28,6 +29,7 @@ task("repay", "repays the Mock USDC")
     const usdcTokenAddress = await protocolContract.usdcToken()
     const mockUsdcFactory = await ethers.getContractFactory("MockUSDC")
     const mockUsdcToken = await mockUsdcFactory.attach(usdcTokenAddress)
+    const bnmTokenContract = await mockUsdcFactory.attach(bnmToken)
 
     const borrowerUSDCBal = await mockUsdcToken.balanceOf(borrower.address)
     const borrowerBalance = await protocolContract.borrowings(borrower.address, usdcTokenAddress)
@@ -45,23 +47,19 @@ task("repay", "repays the Mock USDC")
     }
 
     console.log(`\nApproving Protocol to burn borrowed tokens on behalf of borrower '${borrower.address}'`)
-    // const approveBurnTx = await mockUsdcToken
-    //   .connect(borrower)
-    //   .approve(protocolContract.address, "1000000000000000000000")
-    // await approveBurnTx.wait()
+    const approveBurnTx = await mockUsdcToken.connect(borrower).approve(protocolContract.address, MAX_UINT256)
+    await approveBurnTx.wait()
+    const approveBnmTx = await bnmTokenContract.connect(borrower).approve(protocolContract.address, MAX_UINT256)
+    await approveBnmTx.wait()
     console.log(`\nApproval to burn MockUSDC complete...`)
 
-    console.log(`\nRepaying borrowed token...`)
+    console.log(`\nRepaying borrowed token...`, borrowerUSDCBal.toString())
 
     const repayTx = await protocolContract.repayAndSendMessage(
       borrowerUSDCBal,
       sourceChainSelector,
       taskArgs.sender,
-      taskArgs.messageid,
-      {
-        // Must increase gas
-        // gasLimit: 10_000_000,
-      }
+      taskArgs.messageid
     )
     await repayTx.wait()
 
