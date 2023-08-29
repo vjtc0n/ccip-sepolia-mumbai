@@ -104,7 +104,7 @@ contract Protocol is CCIPReceiver, OwnerIsCreator {
     uint256 deposited = deposits[msg.sender][transferredToken];
     uint256 borrowable = (deposited * 70) / 100; // 70% collaterization ratio.
 
-    uint256 borrowableInUSDC = _convertSourceChainTokenToCurrentChainToken(borrowable);
+    uint256 borrowableInUSDC = _convertSourceChainTokenToCurrentChainToken(transferredToken, borrowable);
 
     // MintUSDC
     usdcToken.mint(msg.sender, borrowableInUSDC);
@@ -116,8 +116,20 @@ contract Protocol is CCIPReceiver, OwnerIsCreator {
     return borrowableInUSDC;
   }
 
-  function _convertSourceChainTokenToCurrentChainToken(uint256 borrowable) private pure returns (uint256) {
-    return borrowable;
+  function _convertSourceChainTokenToCurrentChainToken(address transferredToken, uint256 borrowable)
+    private
+    view
+    returns (uint256)
+  {
+    // https://docs.chain.link/data-feeds/price-feeds/addresses/?network=polygon
+    AggregatorV3Interface priceFeed = AggregatorV3Interface(0x572dDec9087154dC5dfBB1546Bb62713147e0Ab0);
+
+    (, int256 price, , , ) = priceFeed.latestRoundData();
+    uint256 price18decimals = uint256(price * (10**10)); // make USD price 18 decimal places from 8 decimal places.
+
+    uint256 borrowableInUSDC = borrowable * price18decimals;
+
+    return borrowableInUSDC;
   }
 
   // Repay the Protocol. Transfer tokens back to source chain.
